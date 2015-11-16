@@ -1,0 +1,25 @@
+Name:                static-file
+Version:             0.1
+Synopsis:            Static file benchmark
+Category:            Web
+Build-type:          Simple
+
+Cabal-version:       >=1.2
+
+Executable server
+  Main-is:             Server.hs
+  hs-source-dirs: src
+  Build-depends:       base > 4, wai, warp, blaze-builder, http-types
+  Ghc-options:         -O2 -threaded -rtsopts
+
+Executable client
+  Main-is:             Program.hs
+  hs-source-dirs: src
+  Build-depends:       HTTP
+  Ghc-options:         -O2 -threaded -rtsopts
+
+Executable benchmark
+  Main-is:             Benchmark.hs
+  hs-source-dirs: src
+  Build-depends:       criterion >= 1.1, directory
+  Ghc-options:         -O2 -threaded -rtsopts
