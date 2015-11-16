@@ -1,0 +1,6 @@
+out
+*summary.txt
+*.hi
+*.o
+main
+benchmark
