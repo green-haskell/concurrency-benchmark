@@ -1,0 +1,5 @@
+out/
+data/
+dist/
+src/Utils.hs
+*summary.txt
