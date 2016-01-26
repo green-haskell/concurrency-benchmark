@@ -1,1 +1,2 @@
 # one directory per line, and don't forget the ending slash
+results/

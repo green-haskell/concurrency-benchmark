@@ -1,0 +1,193 @@
+<html>
+  <head>
+    <title>green-haskell :: concurrent benchmark results</title>
+
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.css">
+    <style>
+      h1, p { color: #0E4EAD }
+      table { margin: 0 auto; border-spacing: 14px 2px }
+      .bench { width: 100%; margin: 0 auto; float: left; border-bottom: 2px solid #07093D; margin-bottom: 10px; text-align: center; }
+      .last { margin-bottom: 0px; }
+      .graph-container { width: 95%; margin: 0 auto; }
+      .graph { width: 49%; }
+      .graph img { width: 100%; }
+      .execution-time { float: left; }
+      .energy-consumption { float: right }
+      .hide64link { float: right }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.10/c3.min.js"></script>
+    <script src="http:///cdn.jsdelivr.net/rxjs/2.5.3/rx.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/rxjs/2.5.3/rx.aggregates.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/rxjs-dom/6.0.0/rx.dom.min.js"></script>
+  </head>
+
+  <body>
+    <a class="hide64link" href="?hide64=true" target="_blank">Click here to see the charts without N=64</a>
+    <div class="bench">
+      <h1>[ system spec ]</h1>
+      <table>
+        <tbody>
+          <tr> <td>Processor model</td> <td>Intel(R) Xeon(R) E5-2660 v2</td> </tr>
+          <tr> <td>Clock</td> <td>2.20 GHz</td> </tr>
+          <tr> <td>Sockets</td> <td>2</td> </tr>
+          <tr> <td>Cores*</td> <td>10</td> </tr>
+          <tr> <td>Logical processors*</td> <td>20</td> </tr>
+          <tr> <td>L1 cache**</td> <td>320 KB</td> </tr>
+          <tr> <td>L2 cache**</td> <td>2.5 MB</td> </tr>
+          <tr> <td>L3 cache*</td> <td>25 MB</td> </tr>
+          <tr> <td>Memory</td> <td>256 GB DDR3 1600MHz</td> </tr>
+	  <tr> <td>*per socket</td> <td>**per core</td> </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <template id="bench-template">
+      <div class="bench">
+        <h1></h1>
+        <div class="graph-container">
+          <div class="graph execution-time"></div>
+          <div class="graph energy-consumption"></div>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      var has64 = true;
+      if (window.location.search) {
+          var options = window.location.search;
+          has64 = !(options.indexOf("hide64=true") > -1);
+          if (!has64) {
+              var a = document.querySelector(".hide64link");
+              a.style.display = 'none';
+          }
+      }
+
+      var generateChartFor = function (benchDiv, data) {
+        var x_values = has64 ? ['x', 1, 2, 4, 8, 16, 20, 32, 40, 64]
+                             : ['x', 1, 2, 4, 8, 16, 20, 32, 40];
+        var x_axis = {
+          min: 0,
+          label: {
+            text: 'Number of Capabilities',
+            position: 'outer-center'
+          }
+        };
+        var y_axis = function (label) {
+          return {
+            min: 0,
+            label: {
+              text: label,
+              position: 'outer-middle'
+            },
+            padding: { bottom: 0 }
+          };
+        };
+
+        c3.generate({
+          bindto: benchDiv.querySelector(".execution-time"),
+          data: {
+              x: 'x',
+              columns: [x_values].concat(data.time)
+          },
+          axis: {
+            x: x_axis,
+            y: y_axis('Time (sec)')
+          },
+          legend: { position: 'right' }
+        });
+
+        c3.generate({
+          bindto: benchDiv.querySelector(".energy-consumption"),
+          data: {
+              x: 'x',
+              columns: [x_values].concat(data.energy)
+          },
+          axis: {
+            x: x_axis,
+            y: y_axis('Energy consumption (joules)')
+          },
+          legend: { position: 'right' }
+        });
+      };
+
+      var parseData = function (raw, label) {
+        var r = { time: [label], energy: [label] };
+        raw.split("\n").forEach(function (item) {
+          if (item.length == 0)
+            return;
+
+          var d = item.split(/[ ]+/);
+          r.time.push(parseFloat(d[0]));
+          r.energy.push(parseFloat(d[1]));
+        });
+
+        return r;
+      };
+
+      var renderBenchmark = function (benchName, data) {
+        var t = document.querySelector('#bench-template');
+        var clone = document.importNode(t.content, true);
+        clone.querySelector('h1').innerHTML = benchName;
+        var div = clone.firstElementChild;
+        document.body.appendChild(clone);
+
+        generateChartFor(div, data);
+      };
+
+      var executeAndProcessRequestsFor = function (benchName, requests) {
+        Rx.Observable.merge(requests)
+          .reduce(function (acc, v) {
+            return {
+              time: acc.time.concat([v.time]),
+              energy: acc.energy.concat([v.energy]),
+            };
+          }, { time: [], energy: [] })
+          .subscribe(
+            renderBenchmark.bind(null, benchName),
+            function (err) {
+              console.log("Error processing " + benchName + ": " + err);
+            });
+      };
+
+      var benchmarkObservable = Rx.DOM.getJSON('benchmarks.json')
+        .flatMap(function (benchmarks) {
+            return Rx.Observable.fromArray(benchmarks);
+        })
+        .flatMap(function (benchmark) {
+            return Rx.DOM.getJSON(benchmark + '/files.json')
+                .map(function (fs) {
+                    return { id: benchmark, files: fs};
+                });
+        })
+        .reduce (function (acc, v) {
+            acc[v.id] = v.files;
+            return acc;
+        }, {});
+
+        benchmarkObservable.subscribe(
+            function (benchmarks) {
+                for (var benchName in benchmarks) {
+                  var os = [];
+
+                  benchmarks[benchName].forEach(function (file) {
+                    var url = benchName + '/' + file;
+                    var o = Rx.DOM.get(url)
+                      .map(function (data) {
+                        return parseData(data.response, file.split(".")[1]);
+                      });
+                    os.push(o);
+                  });
+
+                  executeAndProcessRequestsFor(benchName, os);
+                }
+            },
+            function (err) {
+                console.error("Error loading data: " + err)
+            }
+        );
+
+    </script>
+  </body>
+</html>
