@@ -3,6 +3,12 @@
 This repository contains a set of Haskell benchmarks. It was used in a empirical study on the energy behavior of Haskell's concurrent programming constructs. You can find more information about the benchmarks as well as the study on this [paper](http://green-haskell.github.io/papers/saner2016.pdf) and on this [blog post](http://fernandocastor.github.io/general/2015/11/19/green-haskell.html).
 
 ## Instructions
+This section contains instructions to setup the environment and execute the benchmarks. These instructions were tested on a machine running **Ubuntu Server 14.04.3 LTS** but should work as is for other versions of Ubuntu.
+
+Due to the fact that these benchmarks were developed to be used in a study about energy consumption, these instruction assumes that you will run it on a machine with a modern Intel processor in order to be able to access the linux `msr` module and collect energy data.
+
+It's important to notice that the instructions say to install the cabal packages globally. This is needed because the benchmarks have to be executed by root in order to have access to the energy readings.
+
 ### Install system dependencies
 ```
 $ sudo add-apt-repository ppa:hvr/ghc
