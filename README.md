@@ -53,7 +53,7 @@ You can configure the number of capabilities that are used by editing the `NCORE
 You can also skip some benchmarks from the execution by including its directory name on the `blacklist.txt` file.
 
 ### Visualize the results
-When the benchmarks finish executing, the results will be placed in a file called `DATE-bench-summary.txt` inside each benchmark directory. In order to aggreagate it and visualize you can do the following:
+When the benchmarks finish executing, the results will be placed in a file called `DATE-bench-summary.txt` inside each benchmark directory. In order to aggregate and visualize it you can do the following:
 
 ```
 $ sudo ./aggregate-results.sh
@@ -62,4 +62,4 @@ $ python2 -m SimpleHTTPServer
 Serving HTTP on 0.0.0.0 port 8000 ...
 ```
 
-After doing this, you'll be able to access http://localhost:8000/ in a web browser and see the results plotted in several charts like the ones [here](http://green-haskell.github.io/concurrency-results/).
+After doing this, you'll be able to access <http://localhost:8000/> in a web browser and see the results plotted in several charts like the ones [here](http://green-haskell.github.io/concurrency-results/).
