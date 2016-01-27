@@ -1,6 +1,6 @@
 # concurrency-benchmark
 
-This repository contains a set of Haskell benchmarks in that uses concurrent programming constructs. It was used in a empirical study on the energy behavior of Haskell's concurrent programming primitives. You can find more information about the benchmarks as well as the study on this [paper](http://green-haskell.github.io/papers/saner2016.pdf) and on this [blog post](http://fernandocastor.github.io/general/2015/11/19/green-haskell.html).
+This repository contains a set of Haskell benchmarks. It was used in a empirical study on the energy behavior of Haskell's concurrent programming constructs. You can find more information about the benchmarks as well as the study on this [paper](http://green-haskell.github.io/papers/saner2016.pdf) and on this [blog post](http://fernandocastor.github.io/general/2015/11/19/green-haskell.html).
 
 ## Instructions
 ### Install system dependencies
